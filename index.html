@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style type="text/css">
+		body { margin:0;background:black; }
+		#c1 { background:white; }
+		input {
+			border-radius:50%;
+			padding:20px;
+			position:absolute;
+			top:20px;
+			left:1300px;
+		}
+	</style>
+	<script type="text/javascript">
+		window.onload = function (){
+			/*
+			*	学习了 Tsinghua university 邓俊辉教授的计算几何以后，写了一个基于 JS 的凸包算法(Convel Hull)
+			*	目前仅支持 Html5(支持Canvas) 浏览器
+			**/
+			var oC = document.getElementById('c1');
+			var oBtn = document.getElementsByTagName('input')[0];
+			var oGc = oC.getContext('2d');
+			var arr = [];
+			var nArr = [];
+			var onOff = true;
+			function toLeft(p,q,s){
+				return p.x * q.y - p.y * q.x + q.x * s.y - q.y * s.x + s.x * p.y - s.y * p.x > 0;
+			};
+			function checkEdge(p,q,n){
+				var L,R = true;
+				for(var i = 0;i<n && (L||R);i++){
+					if(i!=p&&i!=q){
+						toLeft(arr[p],arr[q],arr[i]) ? L = false : R = false;
+					};
+				};
+				if(L||R){
+					arr[p].extrme = arr[q].extrme = true;
+				};
+			};
+			oBtn.onclick = function (){
+				if(onOff) return false;
+				nArr = [];
+				var pointLen = arr.length;
+				for(var i = 0;i<pointLen;i++){
+					arr[i].extrme = false;
+				};
+				function LTL(){
+					var min = arr[0];
+					var minNum = 0;
+					for(var i = 1;i<pointLen;i++){
+						if(min.y <= arr[i].y){
+							min = arr[i];
+							minNum = i;
+						};
+					};
+					return minNum;
+				};
+				var ltl = LTL();
+				var k = ltl;
+				do{
+					nArr.push(arr[k]);
+					var s = -1;
+					for(var t = 0;t<pointLen;t++){
+						if(t!=k && t!=s && (s==-1 || !toLeft(arr[k],arr[s],arr[t]))){
+							s = t;
+						};
+					};
+					k = s;
+					nArr.push(arr[k]);
+				}while(ltl != k);
+				var len = nArr.length;
+				oGc.beginPath();
+					oGc.strokeStyle = 'orange';
+					oGc.moveTo(nArr[0].x,nArr[0].y);
+					for(var i = 1;i<len;i++){
+						oGc.lineTo(nArr[i].x,nArr[i].y);
+					};
+					oGc.closePath();
+				oGc.stroke();
+			};
+			oC.onclick = function (ev){
+				if (!onOff) return false;
+				onOff = false;
+				var ev = ev || event;
+				var disX = ev.clientX;
+				var disY = ev.clientY;
+				
+				for(var i = 0;i<100;i++){
+					var x = randomNum(10,1170);
+					var y = randomNum(10,670);
+					drawPixel(x,y,'black',6);
+					arr.push({'x':x,'y':y});
+				};
+			};
+			function randomNum(x,y){
+				return Math.round( Math.random()*(y-x) + x );
+			};
+			function drawPixel(x,y,color,r = 0.3){
+				oGc.beginPath();
+				oGc.strokeStyle = color;
+				oGc.arc(x,y,r,0,360*Math.PI/180,false);
+				oGc.fillText(''+x+':'+y+'', x-10, y+20);
+				oGc.stroke();
+				oGc.closePath();
+			};
+		};
+	</script>
+</head>
+<body>
+	<canvas id="c1" width="1200" height="700"></canvas>
+	<input type="button" value="连线">
+</body>
+</html>
